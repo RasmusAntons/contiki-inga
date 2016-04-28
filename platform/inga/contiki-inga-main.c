@@ -539,6 +539,9 @@ init(void)
   PRINTA("  PAN ADDR: 0x%04X\n", inga_cfg.pan_addr);
 #endif /* INGA_BOOTSCREEN_NET */
 
+#define RASMUS_NODE_ID_HACK
+node_id = inga_cfg.pan_addr;
+
   //--- Set Link address based on eui64
 #if LINKADDR_SIZE == 2
   // need to invert byte order to match (short addr 0x0001 to rime addr 0.1)
