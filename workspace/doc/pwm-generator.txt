@@ -1,0 +1,14 @@
+inga <--> pwm-generator
+
+10 <--> Ground
+ 8 <--> SCL
+ 7 <--> SDA
+ 1 <--> VCC
+
+pwm <--> motorcontroller
+
+VCC  <--> 5V out
+
+rechts:
+pwm5 <--> PWM / Ground
+   B <--> dir
