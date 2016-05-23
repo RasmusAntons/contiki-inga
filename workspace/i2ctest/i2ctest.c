@@ -57,7 +57,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 	
 	i2c_init();
 	
-	static int8_t left = 0, right = 20;
+	static int8_t left = 20, right = 20;
 	
 	while(1)
 	{
@@ -78,7 +78,8 @@ PROCESS_THREAD(hello_world_process, ev, data)
 		PROCESS_YIELD();
 		PROCESS_YIELD();
 		
-		right = (right == 20) ? -20 : 20;
+		left = -left;
+		right = -right;
 		
 	}
 	

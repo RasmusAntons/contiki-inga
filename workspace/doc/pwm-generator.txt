@@ -9,6 +9,9 @@ pwm <--> motorcontroller
 
 VCC  <--> 5V out
 
+links:
+pwm6 <--> PWM /Ground
+   A <--> dir
 rechts:
 pwm5 <--> PWM / Ground
    B <--> dir
