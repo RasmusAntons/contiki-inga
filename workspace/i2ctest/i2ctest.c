@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include <stdio.h> /* For printf() */
-#include "dev/i2c.h"
+#include "dev/motors.h"
 #include "dev/button-sensor.h"
 
 #define I2C_ADDR 0x66
@@ -47,6 +47,7 @@
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
 /*---------------------------------------------------------------------------*/
+
 PROCESS_THREAD(hello_world_process, ev, data)
 {
 	PROCESS_BEGIN();
@@ -55,7 +56,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 	
 	SENSORS_ACTIVATE(button_sensor);
 	
-	i2c_init();
+	motors_init();
 	
 	static int8_t left = 20, right = 20;
 	
@@ -63,17 +64,11 @@ PROCESS_THREAD(hello_world_process, ev, data)
 	{
 		printf("setting left to %d and right to %d\n", left, right);
 		
-		int s1 = i2c_start(I2C_ADDR);
-		int w11 = i2c_write('l');
-		int w12 = i2c_write(left);
-		i2c_stop();
+		uint8_t s1 = motor_set_left(left);
 		
-		int s2 = i2c_start(I2C_ADDR);
-		int w21 = i2c_write('r');
-		int w22 = i2c_write(right);
-		i2c_stop();
+		uint8_t s2 = motor_set_right(right);
 		
-		printf("s1 = %d, w11 = %d, w12 = %d, s2 = %d, w21 = %d, w22 = %d\n\n", s1, w11, w12, s2, w21, w22);
+		printf("s1 = %d, s2 = %d\n\n", s1, s2);
 		
 		PROCESS_YIELD();
 		PROCESS_YIELD();
