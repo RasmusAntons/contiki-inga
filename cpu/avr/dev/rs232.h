@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef RS232_H_
-#define RS232_H_
+#ifndef __RS232_H__
+#define __RS232_H__
 
 #include <avr/pgmspace.h>
 #include "contiki-conf.h"
@@ -162,4 +162,8 @@ void
 
 s232_set_baud(uint16_t bd);
 
-#endif /* RS232_H_ */
+
+int8_t rs232_getByte(uint8_t* byte);
+
+
+#endif /* __RS232_H__ */

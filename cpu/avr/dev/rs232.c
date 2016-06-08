@@ -74,7 +74,7 @@
 
 /* Insert a carriage return after a line feed. This is the default. */
 #ifndef ADD_CARRIAGE_RETURN_AFTER_NEWLINE
-#define ADD_CARRIAGE_RETURN_AFTER_NEWLINE 1
+#define ADD_CARRIAGE_RETURN_AFTER_NEWLINE 0
 #endif
 
 /* Reducing NUMPORTS from the default will harmlessly disable usage of those ports */
@@ -82,7 +82,6 @@
 #ifdef RS232_CONF_NUMPORTS
 #define NUMPORTS RS232_CONF_NUMPORTS
 #endif
-
 #if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__) || defined(__AVR_ATmega128RFA1__)
 #ifndef NUMPORTS
 #define NUMPORTS 2
@@ -215,14 +214,30 @@
 #error Please define the UART registers for your MCU!
 #endif
 
+static volatile uint32_t rx_wr_ptr = 0;
+static volatile uint32_t rx_rd_ptr = 0;
+#define UART_RX_BUFSIZE 256
+static unsigned char uart_rxbuf[UART_RX_BUFSIZE];
+
+int8_t rs232_getByte(uint8_t* byte){
+	if((rx_wr_ptr - rx_rd_ptr) == 0)
+		return -1;
+	rx_rd_ptr++;
+	*byte = uart_rxbuf[(rx_rd_ptr-1) % UART_RX_BUFSIZE];
+	return 0;
+}
+
 #if NUMPORTS > 0
 int (* input_handler_0)(unsigned char);
 ISR(D_USART0_RX_vect)
 {
-  unsigned char c;
-  c = D_UDR0;
-  if (input_handler_0 != NULL) input_handler_0(c);
+	// buffer not full
+	if((rx_rd_ptr - rx_wr_ptr) != 1) {
+		uart_rxbuf[rx_wr_ptr % UART_RX_BUFSIZE] = D_UDR0;
+		rx_wr_ptr++;
+	}
 }
+
 #if RS232_TX_INTERRUPTS
 volatile uint8_t txwait_0;
 ISR(D_USART0_TX_vect)
@@ -321,7 +336,7 @@ rs232_init (uint8_t port, uint8_t bd, uint8_t ffmt)
 }
 
 /*---------------------------------------------------------------------------*/
-void 
+void
 rs232_send(uint8_t port, unsigned char c)
 {
 #if RS232_TX_INTERRUPTS
