@@ -6,7 +6,7 @@
 #include "dev/leds.h"
 
 #define I2C_ADDR 0x66
-#define RIME_ADDR_CONTROLLER 0x0000
+#define RIME_ADDR_CONTROLLER 0x04C3
 
 #define CMD_DEV 0
 #define CMD_SPEED 1
@@ -57,6 +57,7 @@ PROCESS_THREAD(motor_relay_process, ev, data) {
 				PROCESS_PAUSE();
 			printf("send command [%c,%i]\n", cmd[CMD_DEV], cmd[CMD_SPEED]);
 			packetbuf_copyfrom(cmd, CMD_LENGTH);
+			leds_toggle(LEDS_ALL);
 			unicast_send(&uconn, &addr);
 		}
 		PROCESS_PAUSE();

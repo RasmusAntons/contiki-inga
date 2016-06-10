@@ -5,7 +5,7 @@
 #include "dev/motors.h"
 
 #define I2C_ADDR 0x66
-#define RIME_ADDR_RELAY 0x0000
+#define RIME_ADDR_RELAY 0x0243
 
 #define CMD_DEV 0
 #define CMD_SPEED 1
@@ -34,6 +34,7 @@ void recv(struct unicast_conn *c, const linkaddr_t *from)
 	} else {
 		speed = -speed;
 	}
+	if (dev == 'r') speed = -speed;
 	
 	printf("received command [%c,%i]\n", dev, speed);
 	
