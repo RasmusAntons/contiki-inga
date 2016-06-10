@@ -22,7 +22,8 @@ void recv(struct unicast_conn *c, const linkaddr_t *from)
 {
 	leds_toggle(LEDS_ALL);
 	
-	static uint8_t dev, speed;
+	static uint8_t dev;
+	static int8_t speed;
 	char *message = (char *) packetbuf_dataptr();
 	dev = message[CMD_DEV];
 	speed = message[CMD_SPEED];
