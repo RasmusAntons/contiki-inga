@@ -19,19 +19,15 @@ public class IngaControl {
 	static final byte LEFT = 0x6C;
 	static final byte RIGHT = 0x72;
 
-	// 0 stop
-	// 1-128 rückwärts
-	// 129-256 forwärts
-
-	static final byte SPEED_STOP = 0x00; 			// 0
-	static final byte SPEED_RV_LOW = 0x20; 			// 32
-	static final byte SPEED_RV_MID = 0x40; 			// 64
-	static final byte SPEED_RV_HIGH = 0x60; 		// 96
-	static final byte SPEED_RV_MAX = (byte) 0x80; 	// 128
-	static final byte SPEED_LOW = (byte) 0xA0; 		// 160
-	static final byte SPEED_MID = (byte) 0xC0; 		// 192
-	static final byte SPEED_HIGH = (byte) 0xE0; 	// 224
-	static final byte SPEED_MAX = (byte) 0x100; 	// 256
+	static final byte SPEED_STOP = 0;
+	static final byte SPEED_RV_LOW = 32;
+	static final byte SPEED_RV_MID = 64;
+	static final byte SPEED_RV_HIGH = 96;
+	static final byte SPEED_RV_MAX = 127;
+	static final byte SPEED_LOW = -32;
+	static final byte SPEED_MID = -64;
+	static final byte SPEED_HIGH = -96;
+	static final byte SPEED_MAX = -127;
 
 	public static void main(String[] args) {
 
@@ -51,9 +47,9 @@ public class IngaControl {
 
 	public void sendCommand(byte side, byte speed) {
 		System.out.println("Side="+(char)side+" speed="+speed);
-//		ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-//		buffer.put(new byte[] { side, speed });
-//		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(2);
+		buffer.put(new byte[] { side, speed });
+		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
 	}
 
 	public void sendBytes(DeviceHandle handle, int timeout, ByteBuffer buffer) {
@@ -71,7 +67,10 @@ public class IngaControl {
 		int result = LibUsb.bulkTransfer(handle, endpoint, buffer, transfered, timeout);
 		if (result != LibUsb.SUCCESS)
 			throw new LibUsbException("Control transfer failed", result);
-		System.out.println(transfered.get() + " bytes sent");
+		System.out.print(transfered.get() + " bytes sent:");
+		for (int i = 0; i < buffer.capacity(); ++i)
+			System.out.print(" " + buffer.get(i));
+		System.out.println("");
 	}
 
 	public void claimInterface(DeviceHandle handle, int interfaceNumber) {
