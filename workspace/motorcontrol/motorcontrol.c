@@ -13,12 +13,12 @@
 PROCESS(motor_control_process, "Motor control process");
 AUTOSTART_PROCESSES(&motor_control_process);
 
-void recv(struct unicast_conn *c, const linkaddr_t *from);
+void recv(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno);
 
-static struct unicast_conn uconn;
-static struct unicast_callbacks ucb = {recv};
+static struct runicast_conn uconn;
+static struct runicast_callbacks ucb = {recv};
 
-void recv(struct unicast_conn *c, const linkaddr_t *from)
+void recv(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno)
 {
 	leds_toggle(LEDS_ALL);
 	
@@ -47,7 +47,7 @@ PROCESS_THREAD(motor_control_process, ev, data) {
 	leds_init();
 	leds_on(LEDS_ALL);
 	
-	unicast_open(&uconn, 146, &ucb);
+	runicast_open(&uconn, 146, &ucb);
 	
 	while (1)
 	{
