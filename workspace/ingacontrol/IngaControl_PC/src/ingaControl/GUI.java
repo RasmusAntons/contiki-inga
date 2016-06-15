@@ -20,24 +20,24 @@ import java.util.TreeSet;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 
+
+
 public class GUI extends JFrame {
 
+	/**
+	 * 
+	 */
 	private static final long serialVersionUID = -7466782193912627641L;
-	private final static byte[] speeds = {
-		IngaControl.SPEED_LOW, IngaControl.SPEED_MID, IngaControl.SPEED_HIGH, IngaControl.SPEED_MAX
-	};
-	private final static byte[] rv_speeds = {
-		IngaControl.SPEED_RV_LOW, IngaControl.SPEED_RV_MID, IngaControl.SPEED_RV_HIGH, IngaControl.SPEED_RV_MAX
-	};
-
 	private JPanel contentPane;
 	private IngaControl ic;
 	private JComboBox comboBox;
-
+	private HashMap<Integer, Byte> speeds = new HashMap<Integer, Byte>();
+	private HashMap<Integer, Byte> rv_speeds = new HashMap<Integer, Byte>();
 	private final int forwardLeft = KeyEvent.VK_Q;
 	private final int forwardRight = KeyEvent.VK_E;
 	private final int backwardLeft = KeyEvent.VK_A;
 	private final int backwardRight = KeyEvent.VK_D;
+
 
 	/**
 	 * Launch the application.
@@ -54,6 +54,7 @@ public class GUI extends JFrame {
 			}
 		});
 	}
+
 
 	/**
 	 * Create the frame.
@@ -87,6 +88,18 @@ public class GUI extends JFrame {
 		Device inga = ic.findDevice(vendor, product);
 		DeviceHandle handle = ic.getHandle(inga);
 		ic.claimInterface(handle, 0);
+		
+		ic.spawnListener();
+
+		speeds.put(0, IngaControl.SPEED_LOW);
+		speeds.put(1, IngaControl.SPEED_MID);
+		speeds.put(2, IngaControl.SPEED_HIGH);
+		speeds.put(3, IngaControl.SPEED_MAX);
+
+		rv_speeds.put(0, IngaControl.SPEED_RV_LOW);
+		rv_speeds.put(1, IngaControl.SPEED_RV_MID);
+		rv_speeds.put(2, IngaControl.SPEED_RV_HIGH);
+		rv_speeds.put(3, IngaControl.SPEED_RV_MAX);
 	}
 
 	private class myKeyListener implements KeyListener {
@@ -101,16 +114,16 @@ public class GUI extends JFrame {
 			} else {
 				switch (code) {
 				case forwardLeft:
-					ic.sendCommand(IngaControl.LEFT, speeds[comboBox.getSelectedIndex()]);
+					ic.sendCommand(IngaControl.LEFT, speeds.get(comboBox.getSelectedIndex()));
 					break;
 				case forwardRight:
-					ic.sendCommand(IngaControl.RIGHT, speeds[comboBox.getSelectedIndex()]);
+					ic.sendCommand(IngaControl.RIGHT, speeds.get(comboBox.getSelectedIndex()));
 					break;
 				case backwardLeft:
-					ic.sendCommand(IngaControl.LEFT, rv_speeds[comboBox.getSelectedIndex()]);
+					ic.sendCommand(IngaControl.LEFT, rv_speeds.get(comboBox.getSelectedIndex()));
 					break;
 				case backwardRight:
-					ic.sendCommand(IngaControl.RIGHT, rv_speeds[comboBox.getSelectedIndex()]);
+					ic.sendCommand(IngaControl.RIGHT, rv_speeds.get(comboBox.getSelectedIndex()));
 					break;
 				default:
 					break;
@@ -118,6 +131,7 @@ public class GUI extends JFrame {
 			}
 			pressedKeys.add(code);
 		}
+
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
@@ -129,6 +143,7 @@ public class GUI extends JFrame {
 				ic.sendCommand(IngaControl.RIGHT, IngaControl.SPEED_STOP);
 			}
 		}
+
 
 		@Override
 		public void keyTyped(KeyEvent e) {
