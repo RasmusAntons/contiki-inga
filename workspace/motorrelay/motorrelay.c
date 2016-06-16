@@ -9,6 +9,7 @@
 #define RIME_ADDR_CONTROLLER 0x04C3
 
 #define MAX_RETRANSMISSIONS 5
+#define TRANSMISSION_DELAY CLOCK_SECOND/20
 
 #define CMD_DEV 0
 #define CMD_SPEED 1
@@ -61,6 +62,9 @@ PROCESS_THREAD(motor_relay_process, ev, data) {
 			packetbuf_copyfrom(cmd, CMD_LENGTH);
 			leds_toggle(LEDS_ALL);
 			runicast_send(&uconn, &addr, MAX_RETRANSMISSIONS);
+			static struct etimer et;
+			etimer_set(&et, TRANSMISSION_DELAY);
+			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 		}
 		PROCESS_PAUSE();
 	}
