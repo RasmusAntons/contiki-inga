@@ -25,15 +25,15 @@ public class IngaControl {
 	// 1-128 rückwärts
 	// 129-256 forwärts
 
-	static final byte SPEED_STOP = 0x00; 			// 0
-	static final byte SPEED_RV_LOW = 0x20; 			// 32
-	static final byte SPEED_RV_MID = 0x40; 			// 64
-	static final byte SPEED_RV_HIGH = 0x60; 		// 96
-	static final byte SPEED_RV_MAX = (byte) 0x80; 	// 128
-	static final byte SPEED_LOW = (byte) 0xA0; 		// 160
-	static final byte SPEED_MID = (byte) 0xC0; 		// 192
-	static final byte SPEED_HIGH = (byte) 0xE0; 	// 224
-	static final byte SPEED_MAX = (byte) 0x100; 	// 256
+	static final byte SPEED_STOP = 0;
+	static final byte SPEED_RV_LOW = 32;
+	static final byte SPEED_RV_MID = 64;
+	static final byte SPEED_RV_HIGH = 96;
+	static final byte SPEED_RV_MAX = 127;
+	static final byte SPEED_LOW = -32;
+	static final byte SPEED_MID = -64;
+	static final byte SPEED_HIGH = -96;
+	static final byte SPEED_MAX = -127;
 
 	public static void main(String[] args) {
 
