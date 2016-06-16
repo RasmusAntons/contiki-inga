@@ -16,18 +16,24 @@ public class IngaControl {
 	Context context;
 	int interfaceNumber;
 	boolean detach;
+	inputListener listener;
+	Thread listenerThread;
 	static final byte LEFT = 0x6C;
 	static final byte RIGHT = 0x72;
 
-	static final byte SPEED_STOP = 0;
-	static final byte SPEED_RV_LOW = 32;
-	static final byte SPEED_RV_MID = 64;
-	static final byte SPEED_RV_HIGH = 96;
-	static final byte SPEED_RV_MAX = 127;
-	static final byte SPEED_LOW = -32;
-	static final byte SPEED_MID = -64;
-	static final byte SPEED_HIGH = -96;
-	static final byte SPEED_MAX = -127;
+	// 0 stop
+	// 1-128 rückwärts
+	// 129-256 forwärts
+
+	static final byte SPEED_STOP = 0x00; 			// 0
+	static final byte SPEED_RV_LOW = 0x20; 			// 32
+	static final byte SPEED_RV_MID = 0x40; 			// 64
+	static final byte SPEED_RV_HIGH = 0x60; 		// 96
+	static final byte SPEED_RV_MAX = (byte) 0x80; 	// 128
+	static final byte SPEED_LOW = (byte) 0xA0; 		// 160
+	static final byte SPEED_MID = (byte) 0xC0; 		// 192
+	static final byte SPEED_HIGH = (byte) 0xE0; 	// 224
+	static final byte SPEED_MAX = (byte) 0x100; 	// 256
 
 	public static void main(String[] args) {
 
@@ -39,7 +45,15 @@ public class IngaControl {
 		Device inga = ic.findDevice(vendor, product);
 		DeviceHandle handle = ic.getHandle(inga);
 		ic.claimInterface(handle, 0);
+		ic.spawnListener();
 
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// TODO get user input
 
 		ic.exit();
@@ -50,6 +64,13 @@ public class IngaControl {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(2);
 		buffer.put(new byte[] { side, speed });
 		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
+	}
+	
+
+	public void spawnListener() {
+		listener = new inputListener(handle);		
+		listenerThread = new Thread(listener);
+		listenerThread.start();
 	}
 
 	public void sendBytes(DeviceHandle handle, int timeout, ByteBuffer buffer) {
@@ -67,10 +88,7 @@ public class IngaControl {
 		int result = LibUsb.bulkTransfer(handle, endpoint, buffer, transfered, timeout);
 		if (result != LibUsb.SUCCESS)
 			throw new LibUsbException("Control transfer failed", result);
-		System.out.print(transfered.get() + " bytes sent:");
-		for (int i = 0; i < buffer.capacity(); ++i)
-			System.out.print(" " + buffer.get(i));
-		System.out.println("");
+		System.out.println(transfered.get() + " bytes sent");
 	}
 
 	public void claimInterface(DeviceHandle handle, int interfaceNumber) {
@@ -114,6 +132,8 @@ public class IngaControl {
 
 	public void exit() {
 		System.out.println("Exiting now");
+		if(listenerThread != null)
+			listenerThread.stop();
 		int result = LibUsb.releaseInterface(handle, interfaceNumber);
 		if (result != LibUsb.SUCCESS)
 			throw new LibUsbException("Unable to release interface", result);
