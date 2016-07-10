@@ -44,6 +44,9 @@ public class GUI extends JFrame {
 	private final int backwardLeft = KeyEvent.VK_A;
 	private final int backwardRight = KeyEvent.VK_D;
 
+	private byte left, right;
+	private short target = (short) 0x04c3;
+
 	/**
 	 * Launch the application.
 	 */
@@ -109,16 +112,20 @@ public class GUI extends JFrame {
 			} else {
 				switch (code) {
 					case forwardLeft:
-						ic.sendCommand(IngaControl.LEFT, speeds[comboBox.getSelectedIndex()]);
+						left = speeds[comboBox.getSelectedIndex()];
+						ic.sendCommand(target, left, right);
 						break;
 					case forwardRight:
-						ic.sendCommand(IngaControl.RIGHT, speeds[comboBox.getSelectedIndex()]);
+						right = speeds[comboBox.getSelectedIndex()];
+						ic.sendCommand(target, left, right);
 						break;
 					case backwardLeft:
-						ic.sendCommand(IngaControl.LEFT, rv_speeds[comboBox.getSelectedIndex()]);
+						left = rv_speeds[comboBox.getSelectedIndex()];
+						ic.sendCommand(target, left, right);
 						break;
 					case backwardRight:
-						ic.sendCommand(IngaControl.RIGHT, rv_speeds[comboBox.getSelectedIndex()]);
+						right = rv_speeds[comboBox.getSelectedIndex()];
+						ic.sendCommand(target, left, right);
 						break;
 					default:
 						break;
@@ -132,11 +139,13 @@ public class GUI extends JFrame {
 		public void keyReleased(KeyEvent arg0) {
 			pressedKeys.remove(arg0.getKeyCode());
 			if ((arg0.getKeyCode() == forwardLeft) || (arg0.getKeyCode() == backwardLeft)) {
-				ic.sendCommand(IngaControl.LEFT, IngaControl.SPEED_STOP);
+				left =  IngaControl.SPEED_STOP;
+			} else if ((arg0.getKeyCode() == forwardRight) || (arg0.getKeyCode() == backwardRight)) {
+				right = IngaControl.SPEED_STOP;
+			} else {
+				return;
 			}
-			if ((arg0.getKeyCode() == forwardRight) || (arg0.getKeyCode() == backwardRight)) {
-				ic.sendCommand(IngaControl.RIGHT, IngaControl.SPEED_STOP);
-			}
+			ic.sendCommand(target, left, right);
 		}
 
 

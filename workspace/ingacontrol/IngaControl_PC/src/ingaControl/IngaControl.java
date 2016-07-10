@@ -59,10 +59,10 @@ public class IngaControl {
 		ic.exit();
 	}
 
-	public void sendCommand(byte side, byte speed) {
-		System.out.println("Side="+(char)side+" speed="+speed);
-		ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-		buffer.put(new byte[] { side, speed });
+	public void sendCommand(short receiver, byte left, byte right) {
+		System.out.println(String.format("receiver = %04x, left = %d, right = %d", (byte) (receiver >>> 8), (byte) receiver, left, right));
+		ByteBuffer buffer = ByteBuffer.allocateDirect(5);
+		buffer.put(new byte[] { (byte) 243, (byte) (receiver >> 8), (byte) receiver, left, right });
 		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
 	}
 	
