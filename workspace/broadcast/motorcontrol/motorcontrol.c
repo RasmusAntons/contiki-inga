@@ -33,7 +33,7 @@ static struct abc_conn abc;
 static void abc_recv(struct abc_conn *c)
 {
 	struct packet *data = packetbuf_dataptr();
-	if (!data->packet_type == PACKET_TYPE_CONTROL)
+	if (data->packet_type != PACKET_TYPE_CONTROL)
 		return;
 	struct packet_control *cmd = packetbuf_dataptr();
 	if (cmd->seq_no <= seq_no && (cmd->seq_no > 0x0F || seq_no < 0xF0))
