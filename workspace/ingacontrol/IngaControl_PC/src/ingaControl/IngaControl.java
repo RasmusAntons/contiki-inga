@@ -51,16 +51,14 @@ public class IngaControl {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// TODO get user input
 
 		ic.exit();
 	}
 
 	public void sendCommand(short receiver, byte left, byte right) {
-		System.out.println(String.format("receiver = %04x, left = %d, right = %d", (byte) (receiver >>> 8), (byte) receiver, left, right));
+		System.out.println(String.format("receiver = 0x%04x, left = %d, right = %d", receiver, left, right));
 		ByteBuffer buffer = ByteBuffer.allocateDirect(5);
 		buffer.put(new byte[] { (byte) 243, (byte) (receiver >> 8), (byte) receiver, left, right });
 		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
