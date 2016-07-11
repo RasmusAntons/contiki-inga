@@ -197,19 +197,19 @@ public class GUI extends JFrame {
 			byte setSpeed = (byte) (((int) spinner.getValue() / 100.0) * IngaControl.SPEED_MAX);
 			switch (code) {
 				case forwardLeft:
-					rightValue = setSpeed;
-					ic.sendCommand(target, leftValue, rightValue);
-					break;
-				case forwardRight:
 					leftValue = setSpeed;
 					ic.sendCommand(target, leftValue, rightValue);
 					break;
+				case forwardRight:
+					rightValue = setSpeed;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
 				case backwardLeft:
-					rightValue = (byte) -setSpeed;
+					leftValue = (byte) -setSpeed;
 					ic.sendCommand(target, leftValue, rightValue);
 					break;
 				case backwardRight:
-					leftValue = (byte) -setSpeed;
+					rightValue = (byte) -setSpeed;
 					ic.sendCommand(target, leftValue, rightValue);
 					break;
 				case forward:
@@ -239,19 +239,13 @@ public class GUI extends JFrame {
 			byte setSpeed = (byte) (((int) spinner.getValue() / 100.0) * IngaControl.SPEED_MAX);
 			switch(code) {
 				case forwardLeft:
-					rightValue = IngaControl.SPEED_STOP;
+				case backwardLeft:
+					leftValue = IngaControl.SPEED_STOP;
 					ic.sendCommand(target, leftValue, rightValue);
 					break;
 				case forwardRight:
-					leftValue = IngaControl.SPEED_STOP;
-					ic.sendCommand(target, leftValue, rightValue);
-					break;
-				case backwardLeft:
-					rightValue = IngaControl.SPEED_STOP;
-					ic.sendCommand(target, leftValue, rightValue);
-					break;
 				case backwardRight:
-					leftValue = IngaControl.SPEED_STOP;
+					rightValue = IngaControl.SPEED_STOP;
 					ic.sendCommand(target, leftValue, rightValue);
 					break;
 				case forward:
