@@ -159,110 +159,115 @@ public class GUI extends JFrame {
 	private class myKeyListener implements KeyListener {
 		Set<Integer> pressedKeys = new TreeSet<Integer>();
 
-
-		@Override
-		public void keyPressed(KeyEvent arg0) {
-			int code = arg0.getKeyCode();
-			if (pressedKeys.contains(code)) {
-				return;
-			} else {
-				target = (short) comboBox.getSelectedItem();
-				switch (code) {
-					case forwardLeft:						
-						leftValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case forwardRight:
-						rightValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case backwardLeft:
-						leftValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX*-1);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case backwardRight:
-						rightValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX*-1);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case forward:
-						leftValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX);
-						rightValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case backward:
-						leftValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX*-1);
-						rightValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX*-1);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-					
-					case left:
-						leftValue = (byte)((((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX)/2);
-						rightValue = (byte)(((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-					
-					case right:
-						leftValue = (byte)((((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX));
-						rightValue = (byte)((((int)spinner.getValue()/100.0)*IngaControl.SPEED_MAX)/2);
-						ic.sendCommand(target, leftValue, rightValue);
-						break;
-						
-					case incSpeed:
-						increaseSpeed();
-						break;
-						
-					case decSpeed:
-						decreaseSpeed();
-						break;
-						
-					default:
-						break;
-				}
-			}
-			pressedKeys.add(code);
-		}
-
-
 		private void decreaseSpeed() {
 			int value = (int) spinner.getValue()-5;
 			spinner.setValue(value<0?0:value);
-			
-		}
 
+		}
 
 		private void increaseSpeed() {
 			int value = (int) spinner.getValue()+5;
 			spinner.setValue(value>100?100:value);
-			
+
 		}
 
+		private void arrowControl(byte setSpeed) {
+			byte x = 0, y = 0;
+			if (pressedKeys.contains(backward)) --x;
+			if (pressedKeys.contains(forward)) ++x;
+			if (pressedKeys.contains(left)) --y;
+			if (pressedKeys.contains(right)) ++y;
+			if (x == 0) {
+				leftValue = (byte) (y * setSpeed);
+				rightValue = (byte) (-y * setSpeed);
+			} else {
+				leftValue = (byte) ((x * setSpeed) / (y < 0 ? 2 : 1));
+				rightValue = (byte) ((x * setSpeed) / (y > 0 ? 2 : 1));
+			}
+			ic.sendCommand(target, leftValue, rightValue);
+		}
+
+		@Override
+		public void keyPressed(KeyEvent arg0) {
+			int code = arg0.getKeyCode();
+			if (pressedKeys.contains(code))
+				return;
+			pressedKeys.add(code);
+			target = (short) comboBox.getSelectedItem();
+			byte setSpeed = (byte) (((int) spinner.getValue() / 100.0) * IngaControl.SPEED_MAX);
+			switch (code) {
+				case forwardLeft:
+					rightValue = setSpeed;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case forwardRight:
+					leftValue = setSpeed;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case backwardLeft:
+					rightValue = (byte) -setSpeed;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case backwardRight:
+					leftValue = (byte) -setSpeed;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case forward:
+				case backward:
+				case left:
+				case right:
+					arrowControl(setSpeed);
+					break;
+				case incSpeed:
+					increaseSpeed();
+					break;
+				case decSpeed:
+					decreaseSpeed();
+					break;
+				default:
+					break;
+			}
+		}
 
 		@Override
 		public void keyReleased(KeyEvent arg0) {
-			pressedKeys.remove(arg0.getKeyCode());
-			int key = arg0.getKeyCode();
-			if ((key == forwardLeft) || (key == backwardLeft)) {
-				leftValue =  IngaControl.SPEED_STOP;
-			} else if ((key == forwardRight) || (key == backwardRight)) {
-				rightValue = IngaControl.SPEED_STOP;
-			} else if ((key == forward) || (key == backward) || (key == left) || (key == right)) {
-					leftValue =  IngaControl.SPEED_STOP;
-					rightValue = IngaControl.SPEED_STOP;				
-			} else {
+			int code = arg0.getKeyCode();
+			if (!pressedKeys.contains(code))
 				return;
+			pressedKeys.remove(code);
+			target = (short) comboBox.getSelectedItem();
+			byte setSpeed = (byte) (((int) spinner.getValue() / 100.0) * IngaControl.SPEED_MAX);
+			switch(code) {
+				case forwardLeft:
+					rightValue = IngaControl.SPEED_STOP;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case forwardRight:
+					leftValue = IngaControl.SPEED_STOP;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case backwardLeft:
+					rightValue = IngaControl.SPEED_STOP;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case backwardRight:
+					leftValue = IngaControl.SPEED_STOP;
+					ic.sendCommand(target, leftValue, rightValue);
+					break;
+				case forward:
+				case backward:
+				case left:
+				case right:
+					arrowControl(setSpeed);
+					break;
+				default:
+					break;
 			}
-			ic.sendCommand(target, leftValue, rightValue);
 		}
 		
 		public void addRobotID(short id) {
 			comboBox.addItem(id);
 		}
-
 
 		@Override
 		public void keyTyped(KeyEvent e) {

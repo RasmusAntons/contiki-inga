@@ -51,7 +51,7 @@ static void abc_recv(struct abc_conn *c)
 		left = cmd->left;
 		motor_set_left(left);
 	}
-	if (right != cmd_right) {
+	if (right != cmd->right) {
 		right = cmd->right;
 		motor_set_right(-right);
 	}

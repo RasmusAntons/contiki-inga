@@ -26,14 +26,14 @@ public class IngaControl {
 	// 129-256 forwärts
 
 	static final byte SPEED_STOP = 0;
-	static final byte SPEED_RV_LOW = 32;
-	static final byte SPEED_RV_MID = 64;
-	static final byte SPEED_RV_HIGH = 96;
-	static final byte SPEED_RV_MAX = 127;
-	static final byte SPEED_LOW = -32;
-	static final byte SPEED_MID = -64;
-	static final byte SPEED_HIGH = -96;
-	static final byte SPEED_MAX = -127;
+	static final byte SPEED_RV_LOW = -32;
+	static final byte SPEED_RV_MID = -64;
+	static final byte SPEED_RV_HIGH = -96;
+	static final byte SPEED_RV_MAX = -127;
+	static final byte SPEED_LOW = 32;
+	static final byte SPEED_MID = 64;
+	static final byte SPEED_HIGH = 96;
+	static final byte SPEED_MAX = 127;
 
 	public static void main(String[] args) {
 
@@ -60,13 +60,13 @@ public class IngaControl {
 	public void sendCommand(short receiver, byte left, byte right) {
 		System.out.println(String.format("receiver = 0x%04x, left = %d, right = %d", receiver, left, right));
 		ByteBuffer buffer = ByteBuffer.allocateDirect(5);
-		buffer.put(new byte[] { (byte) 243, (byte) (receiver >> 8), (byte) receiver, left, right });
+		buffer.put(new byte[] { (byte) 243, (byte) (receiver >>> 8), (byte) receiver, left, right });
 		senBytesEndpoint(handle, 10000, buffer, (byte) 0x02);
 	}
 	
 
 	public void spawnListener() {
-		listener = new inputListener(handle);		
+		listener = new inputListener(handle);
 		listenerThread = new Thread(listener);
 		listenerThread.start();
 	}
