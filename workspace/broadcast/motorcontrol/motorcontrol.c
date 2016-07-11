@@ -20,24 +20,29 @@ struct packet {
 
 struct packet_control {
 	uint8_t packet_type;
-	uint8_t seq_no;
+	uint16_t seq_no;
 	linkaddr_t receiver;
 	int8_t left;
 	int8_t right;
 };
 
-static int8_t left, right, running, seq_no;
+static int8_t left, right, running;
+static uint16_t seq_no;
 static struct timer timeout;
 static struct abc_conn abc;
 
 static void abc_recv(struct abc_conn *c)
 {
 	struct packet *data = packetbuf_dataptr();
-	if (data->packet_type != PACKET_TYPE_CONTROL)
+	if (data->packet_type != PACKET_TYPE_CONTROL) {
+		printf("received some other packet\n");
 		return;
+	}
 	struct packet_control *cmd = packetbuf_dataptr();
-	if (cmd->seq_no <= seq_no && (cmd->seq_no > 0x0F || seq_no < 0xF0))
+	if (cmd->seq_no <= seq_no) {
+		printf("received packet number %d but expected at least %d\n", cmd->seq_no, seq_no + 1);
 		return;
+	}
 	seq_no = cmd->seq_no;
 	if (cmd->receiver.u8[0] != linkaddr_node_addr.u8[0] || cmd->receiver.u8[1] != linkaddr_node_addr.u8[1]) {
 		printf("forwarding command [%d,%d,%04x,%i,%i]\n", cmd->packet_type, cmd->seq_no, cmd->receiver.u16, cmd->left, cmd->right);
@@ -70,7 +75,7 @@ PROCESS_THREAD(motor_control_process, ev, data)
 	left = 0;
 	right = 0;
 	running = 0;
-	seq_no = 0xFF;
+	seq_no = 0;
 
 	motors_init();
 	leds_init();

@@ -19,7 +19,7 @@ AUTOSTART_PROCESSES(&motor_relay_process);
 
 struct packet_control {
 	uint8_t packet_type;
-	uint8_t seq_no;
+	uint16_t seq_no;
 	linkaddr_t receiver;
 	int8_t left;
 	int8_t right;
@@ -38,6 +38,10 @@ PROCESS_THREAD(motor_relay_process, ev, data)
 {
 	PROCESS_EXITHANDLER(abc_close(&abc);)
 	PROCESS_BEGIN();
+
+	//printf("radio power = %d\nsetting power to 3\n", rf230_get_txpower());
+	//rf230_set_txpower(253);
+	//printf("radio power = %d\n", rf230_get_txpower());
 
 	leds_init();
 	leds_on(LEDS_ALL);
@@ -70,11 +74,10 @@ PROCESS_THREAD(motor_relay_process, ev, data)
 		}
 
 		if (in == SECRET_MYSTIC_BYTE || timer_expired(&retransmission)) {
-			printf("sending command [%d,%d,%04x,%i,%i]\n", cmd.packet_type, cmd.seq_no, cmd.receiver.u16, cmd.left, cmd.right);
+			printf("sending command [%d,%d,%04x,%i,%i]\n", cmd.packet_type, ++cmd.seq_no, cmd.receiver.u16, cmd.left, cmd.right);
 			leds_toggle(LEDS_ALL);
 			packetbuf_copyfrom(&cmd, sizeof(struct packet_control));
 			abc_send(&abc);
-			++cmd.seq_no;
 			timer_restart(&retransmission);
 			/* wait before allowing the next transmission, should be obsolete with the sequence number
 			static struct etimer et;

@@ -131,7 +131,7 @@ public class GUI extends JFrame {
 		
 		comboBox = new JComboBox();
 		comboBox.setMaximumRowCount(18);
-		comboBox.setModel(new DefaultComboBoxModel(new Short[] {0x04c3}));
+		comboBox.setModel(new DefaultComboBoxModel(new Short[] {0x04c3, 0x04f0}));
 		comboBox.setBounds(12, 25, 78, 22);
 		contentPane.add(comboBox);
 		
