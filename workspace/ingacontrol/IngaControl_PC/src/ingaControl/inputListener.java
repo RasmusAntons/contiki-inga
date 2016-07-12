@@ -16,7 +16,7 @@ import org.usb4java.TransferCallback;
 
 public class inputListener implements Runnable {
 	DeviceHandle handle;
-	static final byte IN_ENDPOINT = (byte) 0x81; // TODO validate
+	static final byte IN_ENDPOINT = (byte) 0x81; 
 	private static final long TIMEOUT = 5000;
 
 	public inputListener(DeviceHandle handle) {
@@ -55,7 +55,6 @@ public class inputListener implements Runnable {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

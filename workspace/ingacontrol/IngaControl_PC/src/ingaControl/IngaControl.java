@@ -22,8 +22,8 @@ public class IngaControl {
 	static final byte RIGHT = 0x72;
 
 	// 0 stop
-	// 1-128 r√ºckw√§rts
-	// 129-256 forw√§rts
+	// 1-128 r¸ckw‰rts
+	// 129-256 forw‰rts
 
 	static final byte SPEED_STOP = 0;
 	static final byte SPEED_RV_LOW = -32;
