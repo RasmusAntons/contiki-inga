@@ -230,7 +230,7 @@ public class GUI extends JFrame {
 				break;
 			
 			case KeyEvent.VK_TAB:
-				comboBox.setSelectedIndex((comboBox.getSelectedIndex()+1)%comboBox.getItemCount());
+				comboBox.setSelectedIndex((comboBox.getSelectedIndex() + 1) % comboBox.getItemCount());
 				break;
 				
 			default:
@@ -277,6 +277,8 @@ public class GUI extends JFrame {
 	}
 	
 	public void addRobotID(short id) {
+		if (IDs.contains(id))
+			return;
 		IDs.add(id);
 		//comboBox.setSelectedIndex(comboBox.getSelectedIndex());
 		int index = comboBox.getSelectedIndex();

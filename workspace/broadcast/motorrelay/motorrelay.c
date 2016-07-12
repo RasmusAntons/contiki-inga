@@ -8,6 +8,7 @@
 
 #define SECRET_MYSTIC_BYTE 243
 #define PACKET_TYPE_CONTROL 244
+#define PACKET_TYPE_HELLO 245
 #define TRANSMISSION_DELAY CLOCK_SECOND/20
 #define RETRANSMISSION_INTERVAL CLOCK_SECOND
 #define CMD_DEV 0
@@ -17,6 +18,10 @@
 PROCESS(motor_relay_process, "Motor relay process");
 AUTOSTART_PROCESSES(&motor_relay_process);
 
+struct packet {
+	uint8_t packet_type;
+};
+
 struct packet_control {
 	uint8_t packet_type;
 	uint16_t seq_no;
@@ -25,11 +30,26 @@ struct packet_control {
 	int8_t right;
 };
 
+struct packet_hello {
+	uint8_t packet_type;
+	linkaddr_t sender;
+};
+
 static struct abc_conn abc;
 
 static void abc_recv(struct abc_conn *c)
 {
-	printf("abc message received\n");
+	printf("received abc package\n");
+	struct packet *data = packetbuf_dataptr();
+	if (data->packet_type != PACKET_TYPE_HELLO)
+		return;
+	struct packet_hello *hello = packetbuf_dataptr();
+	printf("received hello from %04x\n", hello->sender.u16);
+	static uint8_t msg[3];
+	msg[0] = PACKET_TYPE_HELLO;
+	msg[1] = hello->sender.u8[1];
+	msg[2] = hello->sender.u8[0];
+	fwrite(msg, sizeof(uint8_t), 3, stdout);
 }
 
 static const struct abc_callbacks abc_call = {abc_recv};
@@ -39,9 +59,7 @@ PROCESS_THREAD(motor_relay_process, ev, data)
 	PROCESS_EXITHANDLER(abc_close(&abc);)
 	PROCESS_BEGIN();
 
-	//printf("radio power = %d\nsetting power to 3\n", rf230_get_txpower());
-	//rf230_set_txpower(253);
-	//printf("radio power = %d\n", rf230_get_txpower());
+	//rf230_set_txpower(15);
 
 	leds_init();
 	leds_on(LEDS_ALL);
@@ -79,11 +97,6 @@ PROCESS_THREAD(motor_relay_process, ev, data)
 			packetbuf_copyfrom(&cmd, sizeof(struct packet_control));
 			abc_send(&abc);
 			timer_restart(&retransmission);
-			/* wait before allowing the next transmission, should be obsolete with the sequence number
-			static struct etimer et;
-			etimer_set(&et, TRANSMISSION_DELAY);
-			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-			*/
 		}
 		PROCESS_PAUSE();
 	}

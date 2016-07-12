@@ -2,12 +2,14 @@
 #include "net/rime/rime.h"
 #include "dev/motors.h"
 #include "dev/leds.h"
+#include "dev/button-sensor.h"
 #include "sys/node-id.h"
 #include <stdio.h>
 
 #define I2C_ADDR 0x66
 #define TIMEOUT (CLOCK_SECOND * 3) / 2
 #define PACKET_TYPE_CONTROL 244
+#define PACKET_TYPE_HELLO 245
 #define CMD_DEV 0
 #define CMD_SPEED 1
 
@@ -26,10 +28,18 @@ struct packet_control {
 	int8_t right;
 };
 
-static int8_t left, right, running;
+struct packet_hello {
+	uint8_t packet_type;
+	linkaddr_t sender;
+};
+
+static int8_t left, right, active, running;
 static uint16_t seq_no;
-static struct timer timeout;
+static uint8_t button_state = 0;
+static struct etimer timeout;
 static struct abc_conn abc;
+
+static struct packet_hello hello = {.packet_type = PACKET_TYPE_HELLO};
 
 static void abc_recv(struct abc_conn *c)
 {
@@ -44,13 +54,15 @@ static void abc_recv(struct abc_conn *c)
 		return;
 	}
 	seq_no = cmd->seq_no;
-	if (cmd->receiver.u8[0] != linkaddr_node_addr.u8[0] || cmd->receiver.u8[1] != linkaddr_node_addr.u8[1]) {
-		printf("forwarding command [%d,%d,%04x,%i,%i]\n", cmd->packet_type, cmd->seq_no, cmd->receiver.u16, cmd->left, cmd->right);
-		packetbuf_copyfrom(cmd, sizeof(struct packet_control));
-		abc_send(&abc);
+	if (cmd->receiver.u16 != linkaddr_node_addr.u16) {
+		if (active) {
+			printf("forwarding command [%d,%d,%04x,%i,%i]\n", cmd->packet_type, cmd->seq_no, cmd->receiver.u16, cmd->left, cmd->right);
+			packetbuf_copyfrom(cmd, sizeof(struct packet_control));
+			abc_send(&abc);
+		}
 		return;
 	}
-	timer_restart(&timeout);
+	etimer_restart(&timeout);
 	leds_toggle(LEDS_ALL);
 	if (left != cmd->left) {
 		left = cmd->left;
@@ -71,27 +83,36 @@ PROCESS_THREAD(motor_control_process, ev, data)
 {
 	PROCESS_EXITHANDLER(abc_close(&abc);)
 	PROCESS_BEGIN();
+	SENSORS_ACTIVATE(button_sensor);
 
 	left = 0;
 	right = 0;
+	active = 0;
 	running = 0;
 	seq_no = 0;
 
 	motors_init();
 	leds_init();
 	leds_on(LEDS_ALL);
-	timer_set(&timeout, TIMEOUT);
+	etimer_set(&timeout, TIMEOUT);
 
+	hello.sender = linkaddr_node_addr;
 	abc_open(&abc, 128, &abc_call);
 
 	while (1)
 	{
-		PROCESS_PAUSE();
-		if (running && timer_expired(&timeout)) {
+		PROCESS_YIELD();
+		if (etimer_expired(&timeout) && running) {
 			printf("timeout, stopping motors\n");
 			motor_set_left(0);
 			motor_set_right(0);
 			running = 0;
+		} else if (ev == sensors_event && data == &button_sensor && (button_state = !button_state)) {
+			active = 1;
+			seq_no = 0;
+			printf("sending hello\n");
+			packetbuf_copyfrom(&hello, sizeof(struct packet_hello));
+			abc_send(&abc);
 		}
 	}
 	PROCESS_END();

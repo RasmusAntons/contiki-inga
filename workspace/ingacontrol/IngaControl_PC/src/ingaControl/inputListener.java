@@ -56,10 +56,20 @@ public class inputListener implements Runnable {
 
 				// System.out.println(Arrays.toString(bytescut));
 
+				/*
 				if (bytescut[0] == -34) {
 					String v = new String(bytescut, Charset.forName("UTF-8")).substring(1);
 					System.out.println("Received new RobotID: " + v);
 					gui.addRobotID(Short.parseShort(v));
+				}
+				*/
+
+				for (int i = 0; i < bytescut.length - 2; ++i) {
+					if (bytescut[i] == (byte) 243)
+						continue;
+					short id = (short) (bytescut[++i] << 8 | bytescut[++i]);
+					System.out.println("Received new RobotID: " + id);
+					gui.addRobotID(id);
 				}
 
 			}
