@@ -14,8 +14,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -32,16 +34,14 @@ import javax.swing.JLabel;
 
 public class GUI extends JFrame {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -7466782193912627641L;
 	private JPanel contentPane;
 	private IngaControl ic;
 	private JSpinner spinner;
 	private JButton btnClickHere;
-	private JComboBox comboBox;
-	private Short[] IDs = new Short[] { 0x04c3, 0x04f0 };
+	private JComboBox<Short> comboBox;
+	private Short[] idsArray = new Short[] { 0x04c3, 0x04f0 };
+	private Vector<Short> IDs= new Vector<Short>(Arrays.asList(idsArray));
 
 	private final int forwardLeft = KeyEvent.VK_Q;
 	private final int forwardRight = KeyEvent.VK_E;
@@ -83,7 +83,7 @@ public class GUI extends JFrame {
 		setTitle("IngaControl");
 		addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing(WindowEvent arg0) {				
+			public void windowClosing(WindowEvent arg0) {
 				ic.exit();
 			}
 		});
@@ -123,9 +123,9 @@ public class GUI extends JFrame {
 		btnClickHere.addKeyListener(new myKeyListener());
 		contentPane.add(btnClickHere);
 
-		comboBox = new JComboBox();
+		comboBox = new JComboBox<Short>();
 		comboBox.setMaximumRowCount(18);
-		comboBox.setModel(new DefaultComboBoxModel(IDs));
+		comboBox.setModel(new DefaultComboBoxModel<Short>(IDs));
 		comboBox.setBounds(12, 25, 78, 22);
 		contentPane.add(comboBox);
 
@@ -137,8 +137,9 @@ public class GUI extends JFrame {
 		lblSpeed.setBounds(123, 3, 71, 16);
 		contentPane.add(lblSpeed);
 
-		ic = new IngaControl();
-
+		ic = new IngaControl(this);
+		
+		
 		short vendor = 0x0403;
 		short product = 0x6001;
 		Device inga = ic.findDevice(vendor, product);
@@ -269,14 +270,25 @@ public class GUI extends JFrame {
 		}
 
 
-		public void addRobotID(short id) {
-			comboBox.addItem(id);
-		}
-
-
 		@Override
 		public void keyTyped(KeyEvent e) {
 		}
 
 	}
+	
+	public void addRobotID(short id) {
+		IDs.add(id);
+		//comboBox.setSelectedIndex(comboBox.getSelectedIndex());
+		int index = comboBox.getSelectedIndex();
+		comboBox.setModel(new DefaultComboBoxModel<Short>(IDs));
+		comboBox.setSelectedIndex(index);
+	}
+	
+	public void removeRobotID(short id) {
+		IDs.removeElement(id);
+		int index = comboBox.getSelectedIndex();
+		comboBox.setModel(new DefaultComboBoxModel<Short>(IDs));
+		comboBox.setSelectedIndex(index);
+	}
+
 }

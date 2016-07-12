@@ -16,46 +16,52 @@ import org.usb4java.TransferCallback;
 
 public class inputListener implements Runnable {
 	DeviceHandle handle;
-	static final byte IN_ENDPOINT = (byte) 0x81; 
+	static final byte IN_ENDPOINT = (byte) 0x81;
 	private static final long TIMEOUT = 5000;
+	private GUI gui;
 
-	public inputListener(DeviceHandle handle) {
+	public inputListener(DeviceHandle handle, GUI g) {
 		super();
 		this.handle = handle;
+		this.gui = g;
+	}
+
+	static byte[] trim(byte[] bytes) {
+
+		int i = bytes.length - 1;
+		while (i >= 0 && bytes[i] == 0) {
+			--i;
+		}
+
+		return Arrays.copyOf(bytes, i + 1);
 	}
 
 	@Override
 	public void run() {
 		int size = 64;
 		while (true) {
-			// System.out.println("while");
 			ByteBuffer in = read(handle, size);
 
 			byte[] bytes = new byte[size];
 			in.get(bytes, 0, size);
 
-			byte[] bytescut = new byte[size];
+			byte[] bytescut = new byte[bytes.length];
 
 			System.arraycopy(bytes, 2, bytescut, 0, size - 2);
 
-			// System.out.println(Arrays.toString(bytescut));
+			bytescut = trim(bytescut);
 
-			int sum = 0;
-			for (byte b : bytescut) {
-				sum += b;
-				// if(sum!=0) return;
-			}
+			if (bytescut.length != 0) {
+				System.out.print(new String(bytescut, Charset.forName("UTF-8")));
 
-			if (sum != 0) {
 				// System.out.println(Arrays.toString(bytescut));
-				String v = new String(bytescut, Charset.forName("UTF-8"));
-				System.out.println(v);
-			}
 
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				if (bytescut[0] == -34) {
+					String v = new String(bytescut, Charset.forName("UTF-8")).substring(1);
+					System.out.println("Received new RobotID: " + v);
+					gui.addRobotID(Short.parseShort(v));
+				}
+
 			}
 		}
 	}
@@ -78,8 +84,8 @@ public class inputListener implements Runnable {
 			throw new LibUsbException("Unable to read data", result);
 		}
 		int bytesread = transferred.get();
-		//if (bytesread != 2)
-			//System.out.println("bytesread " + bytesread);
+		// if (bytesread != 2)
+		// System.out.println("bytesread " + bytesread);
 		// System.out.println(transferred.get() + " bytes read from device");
 		return buffer;
 	}

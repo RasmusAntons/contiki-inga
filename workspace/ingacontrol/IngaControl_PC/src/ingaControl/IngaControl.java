@@ -20,10 +20,11 @@ public class IngaControl {
 	Thread listenerThread;
 	static final byte LEFT = 0x6C;
 	static final byte RIGHT = 0x72;
+	private GUI gui;
 
 	// 0 stop
-	// 1-128 rückwärts
-	// 129-256 forwärts
+	// 1-128 rï¿½ckwï¿½rts
+	// 129-256 forwï¿½rts
 
 	static final byte SPEED_STOP = 0;
 	static final byte SPEED_RV_LOW = -32;
@@ -37,7 +38,7 @@ public class IngaControl {
 
 	public static void main(String[] args) {
 
-		IngaControl ic = new IngaControl();
+		IngaControl ic = new IngaControl(new GUI());
 
 		short vendor = 0x0403;
 		short product = 0x6001;
@@ -49,7 +50,7 @@ public class IngaControl {
 
 		
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(500000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -66,17 +67,15 @@ public class IngaControl {
 	
 
 	public void spawnListener() {
-		listener = new inputListener(handle);
+		listener = new inputListener(handle, gui);
 		listenerThread = new Thread(listener);
 		listenerThread.start();
 	}
 
 	public void sendBytes(DeviceHandle handle, int timeout, ByteBuffer buffer) {
 
-		int transfered = LibUsb.controlTransfer(handle, (byte) (LibUsb.REQUEST_TYPE_CLASS | LibUsb.RECIPIENT_INTERFACE),
-				(byte) 0x09, (short) 256, (short) 1, buffer, timeout);
-		if (transfered < 0)
-			throw new LibUsbException("Control transfer failed", transfered);
+		int transfered = LibUsb.controlTransfer(handle, (byte) (LibUsb.REQUEST_TYPE_CLASS | LibUsb.RECIPIENT_INTERFACE), (byte) 0x09, (short) 256, (short) 1, buffer, timeout);
+		if (transfered < 0)	throw new LibUsbException("Control transfer failed", transfered);
 		System.out.println(transfered + " bytes sent");
 
 	}
@@ -120,9 +119,10 @@ public class IngaControl {
 		LibUsb.close(handle);
 	}
 
-	public IngaControl() {
+	public IngaControl(GUI g) {
 		super();
 		this.context = new Context();
+		this.gui = g;
 		int result = LibUsb.init(context);
 		if (result != LibUsb.SUCCESS)
 			throw new LibUsbException("Unable to initialize libusb.", result);
