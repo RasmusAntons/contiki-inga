@@ -10,7 +10,7 @@
 #define PACKET_TYPE_CONTROL 244
 #define PACKET_TYPE_HELLO 245
 #define TRANSMISSION_DELAY CLOCK_SECOND/20
-#define RETRANSMISSION_INTERVAL CLOCK_SECOND
+#define RETRANSMISSION_INTERVAL CLOCK_SECOND/10
 #define CMD_DEV 0
 #define CMD_SPEED 1
 #define CMD_LENGTH 2
@@ -46,9 +46,9 @@ static void abc_recv(struct abc_conn *c)
 	struct packet_hello *hello = packetbuf_dataptr();
 	printf("received hello from %04x\n", hello->sender.u16);
 	static uint8_t msg[3];
-	msg[0] = PACKET_TYPE_HELLO;
-	msg[1] = hello->sender.u8[1];
-	msg[2] = hello->sender.u8[0];
+	msg[0] = SECRET_MYSTIC_BYTE;
+	msg[1] = hello->sender.u8[0];
+	msg[2] = hello->sender.u8[1];
 	fwrite(msg, sizeof(uint8_t), 3, stdout);
 }
 
@@ -59,7 +59,7 @@ PROCESS_THREAD(motor_relay_process, ev, data)
 	PROCESS_EXITHANDLER(abc_close(&abc);)
 	PROCESS_BEGIN();
 
-	//rf230_set_txpower(15);
+	rf230_set_txpower(14);
 
 	leds_init();
 	leds_on(LEDS_ALL);

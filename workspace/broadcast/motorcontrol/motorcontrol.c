@@ -7,7 +7,8 @@
 #include <stdio.h>
 
 #define I2C_ADDR 0x66
-#define TIMEOUT (CLOCK_SECOND * 3) / 2
+#define TIMEOUT CLOCK_SECOND
+#define RECOVERY (CLOCK_SECOND / 3) * 2
 #define PACKET_TYPE_CONTROL 244
 #define PACKET_TYPE_HELLO 245
 #define CMD_DEV 0
@@ -35,7 +36,7 @@ struct packet_hello {
 
 static int8_t left, right, active, running;
 static uint16_t seq_no;
-static uint8_t button_state = 0;
+static uint8_t button_state, packet_count, blocked;
 static struct etimer timeout;
 static struct abc_conn abc;
 
@@ -62,17 +63,17 @@ static void abc_recv(struct abc_conn *c)
 		}
 		return;
 	}
-	etimer_restart(&timeout);
 	leds_toggle(LEDS_ALL);
-	if (left != cmd->left) {
+	++packet_count;
+	if (left != cmd->left && !blocked) {
 		left = cmd->left;
 		motor_set_left(left);
 	}
-	if (right != cmd->right) {
+	if (right != cmd->right && !blocked) {
 		right = cmd->right;
 		motor_set_right(-right);
 	}
-	running = left || right;
+	running = (left || right) && !blocked;
 	printf("received command [%d,%d,%04x,%i,%i]\n", cmd->packet_type, cmd->seq_no, cmd->receiver.u16, cmd->left, cmd->right);
 }
 
@@ -85,11 +86,17 @@ PROCESS_THREAD(motor_control_process, ev, data)
 	PROCESS_BEGIN();
 	SENSORS_ACTIVATE(button_sensor);
 
+
+	rf230_set_txpower(14);
+
 	left = 0;
 	right = 0;
 	active = 0;
 	running = 0;
 	seq_no = 0;
+	blocked = 0;
+	button_state = 0;
+	packet_count = 0;
 
 	motors_init();
 	leds_init();
@@ -102,11 +109,20 @@ PROCESS_THREAD(motor_control_process, ev, data)
 	while (1)
 	{
 		PROCESS_YIELD();
-		if (etimer_expired(&timeout) && running) {
-			printf("timeout, stopping motors\n");
-			motor_set_left(0);
-			motor_set_right(0);
-			running = 0;
+		if (etimer_expired(&timeout)) {
+			if (blocked) {
+				blocked = 0;
+			} else if (running && packet_count <= 5) {
+				printf("timeout, stopping motors\n");
+				motor_set_left(0);
+				motor_set_right(0);
+				left = 0;
+				right = 0;
+				running = 0;
+				blocked = 1;
+			}
+			packet_count = 0;
+			etimer_restart(&timeout);
 		} else if (ev == sensors_event && data == &button_sensor && (button_state = !button_state)) {
 			active = 1;
 			seq_no = 0;

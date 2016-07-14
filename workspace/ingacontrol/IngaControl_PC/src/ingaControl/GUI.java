@@ -40,8 +40,7 @@ public class GUI extends JFrame {
 	private JSpinner spinner;
 	private JButton btnClickHere;
 	private JComboBox<Short> comboBox;
-	private Short[] idsArray = new Short[] { 0x04c3, 0x04f0 };
-	private Vector<Short> IDs= new Vector<Short>(Arrays.asList(idsArray));
+	private Vector<Short> IDs= new Vector<Short>();
 
 	private final int forwardLeft = KeyEvent.VK_Q;
 	private final int forwardRight = KeyEvent.VK_E;
@@ -280,10 +279,8 @@ public class GUI extends JFrame {
 		if (IDs.contains(id))
 			return;
 		IDs.add(id);
-		//comboBox.setSelectedIndex(comboBox.getSelectedIndex());
-		int index = comboBox.getSelectedIndex();
 		comboBox.setModel(new DefaultComboBoxModel<Short>(IDs));
-		comboBox.setSelectedIndex(index);
+		comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
 	}
 	
 	public void removeRobotID(short id) {

@@ -54,21 +54,11 @@ public class inputListener implements Runnable {
 			if (bytescut.length != 0) {
 				System.out.print(new String(bytescut, Charset.forName("UTF-8")));
 
-				// System.out.println(Arrays.toString(bytescut));
-
-				/*
-				if (bytescut[0] == -34) {
-					String v = new String(bytescut, Charset.forName("UTF-8")).substring(1);
-					System.out.println("Received new RobotID: " + v);
-					gui.addRobotID(Short.parseShort(v));
-				}
-				*/
-
 				for (int i = 0; i < bytescut.length - 2; ++i) {
-					if (bytescut[i] == (byte) 243)
+					if (bytescut[i] != (byte) 243)
 						continue;
-					short id = (short) (bytescut[++i] << 8 | bytescut[++i]);
-					System.out.println("Received new RobotID: " + id);
+					short id = (short) ((bytescut[++i] & 0xFF) << 8 | (bytescut[++i] & 0xFF));
+					System.out.println(String.format("Received new RobotID: %d (%02x.%02x)",id, bytescut[i - 1], bytescut[i]));
 					gui.addRobotID(id);
 				}
 
